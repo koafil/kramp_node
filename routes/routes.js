@@ -40,17 +40,18 @@ const router = app => {
       res.send({total:0, rowData:[]});
       return;
     }
-    let strRequest = `SELECT * FROM ${tbl}`;
+    let strRequest = `SELECT *, lead( val ) OVER( ORDER BY date DESC) AS val_old FROM ${tbl} AS t`;
     let lstStrConditions = [];
     let id_kramp = req.query.id_kramp || "";
     if(id_kramp && parseInt(id_kramp) ) lstStrConditions.push(`id_kramp = '${parseInt(id_kramp)}'`);
     let id_scan = req.query.id_scan || "";
     if(id_scan && parseInt(id_scan) ) lstStrConditions.push(`id_scan = '${parseInt(id_scan)}'`);
     if(lstStrConditions.length) strRequest = strRequest+` WHERE ${lstStrConditions.join(" AND ")}`;
+    strRequest = strRequest+ ` ORDER BY id DESC`;
     console.log(strRequest);
     pool.query( strRequest, (error03,result03) => {
       if(error03) throw error03;
-      console.log(`\\log\${col} numRows = ${result03.length}  id_kramp = ${id_kramp}`);
+      console.log(`\\log\\${col} numRows = ${result03.length}  id_kramp = ${id_kramp}`);
       res.send({total:result03.length, rowData: result03});
     });
   });
