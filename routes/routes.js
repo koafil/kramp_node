@@ -44,6 +44,7 @@ const router = app => {
       case 'count': tbl='log_tovars_tovar_count'; break;
       case 'vendor_code': tbl='log_tovars_vendor_code'; break;
       case 'price_liter': tbl='log_tovars_price_liter'; break;
+      case 'price_bir': tbl='log_tovars_price_bir'; break;
     }
     if(tbl == ""){
       res.send({total:0, rowData:[]});
@@ -55,6 +56,8 @@ const router = app => {
     if(id_kramp && parseInt(id_kramp) ) 
       if(tbl=='log_tovars_price_liter')
         lstStrConditions.push(`id_liter = '${parseInt(id_kramp)}'`);
+      else if(tbl=='log_tovars_price_bir')
+        lstStrConditions.push(`id_tovar = '${parseInt(id_kramp)}'`);
       else
         lstStrConditions.push(`id_kramp = '${parseInt(id_kramp)}'`);
     let id_scan = req.query.id_scan || "";
