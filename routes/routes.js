@@ -15,6 +15,14 @@ const router = app => {
       res.send({total:result01.length, rowData: result01});
     });
   });
+  app.get('/all_liter',(req,res)=>{
+    pool.query('SELECT * FROM tovars_liter', (error001,result001) => {
+      if (error001) throw error001;
+      console.log(`\\all_liter numRows = ${result001.length} `);
+      res.send({total:result001.length, rowData: result001});
+    });
+  });
+
   app.get('/scans',(req,res)=>{
     // pool.query('SELECT * FROM log_scan ORDER BY id DESC LIMIT 10', (error02,result02) => {
     pool.query('SELECT * FROM log_scan ORDER BY id DESC', (error02,result02) => {
@@ -35,6 +43,7 @@ const router = app => {
       case 'site': tbl='log_tovars_site'; break;
       case 'count': tbl='log_tovars_tovar_count'; break;
       case 'vendor_code': tbl='log_tovars_vendor_code'; break;
+      case 'price_liter': tbl='log_tovars_price_liter'; break;
     }
     if(tbl == ""){
       res.send({total:0, rowData:[]});
@@ -43,7 +52,11 @@ const router = app => {
     let strRequest = `SELECT *, lead( val ) OVER( ORDER BY date DESC) AS val_old FROM ${tbl} AS t`;
     let lstStrConditions = [];
     let id_kramp = req.query.id_kramp || "";
-    if(id_kramp && parseInt(id_kramp) ) lstStrConditions.push(`id_kramp = '${parseInt(id_kramp)}'`);
+    if(id_kramp && parseInt(id_kramp) ) 
+      if(tbl=='log_tovars_price_liter')
+        lstStrConditions.push(`id_liter = '${parseInt(id_kramp)}'`);
+      else
+        lstStrConditions.push(`id_kramp = '${parseInt(id_kramp)}'`);
     let id_scan = req.query.id_scan || "";
     if(id_scan && parseInt(id_scan) ) lstStrConditions.push(`id_scan = '${parseInt(id_scan)}'`);
     if(lstStrConditions.length) strRequest = strRequest+` WHERE ${lstStrConditions.join(" AND ")}`;
@@ -54,6 +67,21 @@ const router = app => {
       console.log(`\\log\\${col} numRows = ${result03.length}  id_kramp = ${id_kramp}`);
       res.send({total:result03.length, rowData: result03});
     });
+  });
+  app.get('/logall/:id_kramp',(req,res)=>{
+    const id_kramp = req.params.id_kramp || "";
+    if(!(id_kramp && parseInt(id_kramp)) ){
+      res.send({total:0, rowData:[]});
+      return;
+    }
+    // let strRequest1 = `SELECT id_scan, val FROM log_tovars_tovar_count WHERE id_kramp='${parseInt(id_kramp)}'`;
+    let strRequest1 = `SELECT id_scan, val, log_scan.date FROM log_tovars_name  JOIN log_scan ON log_scan.id = id_scan WHERE id_kramp='${parseInt(id_kramp)}'`;
+    pool.query( strRequest1, (error04,result04) => {
+      if(error04) throw error04;
+      console.log(`\\logall\\${id_kramp} numRows = ${result04.length}  id_kramp = ${id_kramp}`);
+      res.send({total:result04.length, rowData: result04});
+    });
+    
   });
 
 
